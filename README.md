@@ -38,7 +38,14 @@ This repository contains scripts for gathering, cleaning, and analyzing Steam re
 ## Dependencies
 Ensure you have the following Python libraries installed:
 ```bash
-pip install pandas numpy scikit-learn xgboost imbalanced-learn matplotlib
+pip install requests csv pandas numpy scikit-learn xgboost imbalanced-learn matplotlib langdetect nltk transformers
+```
+
+Additionally, download the necessary NLTK resources by running:
+```python
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
 ```
 
 ## License
