@@ -25,9 +25,12 @@ nltk.download('stopwords')
 df = pd.read_csv('steam_reviews_cleaned.csv')
 
 # the output of each model 
-results = {'RF':[], 'XGB':[], 'LR':[]}
+results = {   'f1':{'RF': [], 'XGB': [], 'LR': []},
+              'precision':{'RF': [], 'XGB': [], 'LR': []},
+              'recall':{'RF': [], 'XGB': [], 'LR': []},
+              'accuracy':{'RF': [], 'XGB': [], 'LR': []}}
 
-# experiment the result between the test size and the accuracy
+# experiment the result between the test size and the f1, precision, recall, accuracy
 for testsize in tqdm([0.1, 0.2, 0.3, 0.4, 0.5]):
     # Prepare the data for classification
 
@@ -54,7 +57,10 @@ for testsize in tqdm([0.1, 0.2, 0.3, 0.4, 0.5]):
     pred_rf = rf.predict(X_test_tfidf)
     #print('Random Forest Accuracy:', accuracy_score(y_test, pred_rf))
     #print(classification_report(y_test, pred_rf))
-    results['RF'].append(accuracy_score(y_test, pred_rf))
+    results['f1']['RF'].append(classification_report(y_test, pred_rf, output_dict=True)['1']['f1-score'])
+    results['precision']['RF'].append(classification_report(y_test, pred_rf, output_dict=True)['1']['precision'])
+    results['recall']['RF'].append(classification_report(y_test, pred_rf, output_dict=True)['1']['recall'])
+    results['accuracy']['RF'].append(accuracy_score(y_test, pred_rf))
     # Train an XGBoost classifier
     xgb = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
     xgb.fit(X_train_tfidf, y_train)
@@ -63,7 +69,10 @@ for testsize in tqdm([0.1, 0.2, 0.3, 0.4, 0.5]):
     pred_xgb = xgb.predict(X_test_tfidf)
     #print('XGBoost Accuracy:', accuracy_score(y_test, pred_xgb))
     #print(classification_report(y_test, pred_xgb))
-    results['XGB'].append(accuracy_score(y_test, pred_xgb))
+    results['f1']['XGB'].append(classification_report(y_test, pred_xgb, output_dict=True)['1']['f1-score'])
+    results['precision']['XGB'].append(classification_report(y_test, pred_xgb, output_dict=True)['1']['precision'])
+    results['recall']['XGB'].append(classification_report(y_test, pred_xgb, output_dict=True)['1']['recall'])
+    results['accuracy']['XGB'].append(accuracy_score(y_test, pred_xgb))
     # Train a Logistic Regression classifier
     lr = LogisticRegression(max_iter=1000, random_state=42)
     lr.fit(X_train_tfidf, y_train)
@@ -72,17 +81,25 @@ for testsize in tqdm([0.1, 0.2, 0.3, 0.4, 0.5]):
     pred_lr = lr.predict(X_test_tfidf)
     # print('Logistic Regression (K-grams) Accuracy:', accuracy_score(y_test, pred_lr))
     # print(classification_report(y_test, pred_lr))
-    results['LR'].append(accuracy_score(y_test, pred_lr))
+    results['f1']['LR'].append(classification_report(y_test, pred_lr, output_dict=True)['1']['f1-score'])
+    results['precision']['LR'].append(classification_report(y_test, pred_lr, output_dict=True)['1']['precision'])
+    results['recall']['LR'].append(classification_report(y_test, pred_lr, output_dict=True)['1']['recall'])
+    results['accuracy']['LR'].append(accuracy_score(y_test, pred_lr))
+    # print the result
 
 # create a plt to show the result
 import matplotlib.pyplot as plt
-plt.plot([0.1, 0.2, 0.3, 0.4, 0.5], results['RF'], label='RF')
-plt.plot([0.1, 0.2, 0.3, 0.4, 0.5], results['XGB'], label='XGB')
-plt.plot([0.1, 0.2, 0.3, 0.4, 0.5], results['LR'], label='LR')
-plt.xlabel('Test Size')
-plt.ylabel('Accuracy')
-plt.legend()
+fig, ax = plt.subplots(2, 2, figsize=(12, 12))
+metrics = list(results.keys())
+test_sizes = [0.1, 0.2, 0.3, 0.4, 0.5]
+for i, key in enumerate(metrics):
+    row = i // 2
+    col = i % 2
+    for model in results[key].keys():
+        ax[row, col].plot(test_sizes, results[key][model], label=model)
+    ax[row, col].set_title(key)
+    ax[row, col].set_xlabel('Test size')
+    ax[row, col].set_ylabel(key)
+    ax[row, col].legend()
+plt.tight_layout()
 plt.show()
-
-
-    
